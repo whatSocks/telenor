@@ -1,21 +1,17 @@
-= Title of GraphGist
+= Authorization and Access Control in TeleGraph
 :neo4j-version: 2.1.0
-:author: Your Name Here
-:description: A sentence description.
-:twitter: @yourTwitter,
-:tags: use-case:social network 
+:author: Cristina
+:description: Graph database access control and authorization solutions
+:tags: use-case:access control
 
 
 == Table of Contents
 
-* *<<introduction, Introduction>>*
-* *<<introduction2, Authorization and Access Control>>*
+* *<<introduction, Authorization and Access Control>>*
 * *<<the_network, The Network>>*
-** <<network_subtopic1, Network Subtopic 1>>
-* *<<problem_1, Describing and Solving Problem 1>>*
-** <<problem_1_subtopic1, Problem 1 Subtopic 1>>
-* *<<problem_2, Describing and Solving Problem 2>>*
-** <<problem_2_subtopic1, Problem 2 Subtopic 1>>
+* *<<problem_1, Finding All Accessible Resources for an Administrator>>*
+* *<<problem_2, Determining Whether an Administrator has Access to a Resource>>*
+* *<<problem_3, Finding Administrators for an Account>>*
 * *<<conclusion, Conclusion>>*
 ** <<conclusion_subtopic1, Conclusion Subtopic 1>>
 ** <<why_neo, Why Neo4j?>>
@@ -25,21 +21,15 @@
 * *<<references, References>>*
 
 [[introduction]]
-== Introduction to GraphGist
-
-_Introduction content. Briefly introduce the graphgist and problems it solves._ 
-
-
-[[introduction2]]
 == Authorization and Access Control in TeleGraph
 
-Authorization and access control solutions store information about parties (e.g., administrators, organizational units, and end-users) and resources (e.g., files, shares, network devices, products, services, and agreements), together with the rules governing access to those resources; they then apply these rules to determine who can access or manipulate a resource. Access control has traditionally been implemented either using directory services or by building a custom solution inside an application’s backend. Hierarchical directory structures, however, cannot cope with the nonhierarchical organizational and resource dependency structures that characterize multiparty distributed supply chains. Hand-rolled solutions, particularly those developed on a relational database, suffer join pain as the dataset size grows, becoming slow and unresponsive, and ultimately deliv‐ ering a poor end-user experience.
+Authorization and access control solutions store information about parties (e.g., administrators, organizational units, and end-users) and resources (e.g., files, shares, network devices, products, services, and agreements), together with the rules governing access to those resources; they then apply these rules to determine who can access or manipulate a resource. Access control has traditionally been implemented either using directory services or by building a custom solution inside an application’s backend. Hierarchical directory structures, however, cannot cope with the non-hierarchical organizational and resource dependency structures that characterize multiparty distributed supply chains. Hand-rolled solutions, particularly those developed on a relational database, suffer join pain as the dataset size grows, becoming slow and unresponsive, and ultimately delivering a poor end-user experience.
 
-A graph database can store complex, densely connected access control structures spanning billions of parties and resources. Its structured yet schema-free data model sup‐ ports both hierarchical and nonhierarchical structures, while its extensible property model allows for capturing rich metadata regarding every element in the system. With a query engine that can traverse millions of relationships per second, access lookups over large, complex structures execute in milliseconds.
+A graph database can store complex, densely connected access control structures spanning billions of parties and resources. Its structured yet schema-free data model supports both hierarchical and nonhierarchical structures, while its extensible property model allows for capturing rich metadata regarding every element in the system. With a query engine that can traverse millions of relationships per second, access lookups over large, complex structures execute in milliseconds.
 
-As with network management and analysis, a graph database access control solution allows for both top-down and bottom-up queries:
+As with network management and analysis, a graph database access control solution allows for both top-down and bottom-up queries. This GraphGist will explore how we can use Neo4j and Cypher to determine:
 
-- Which resources—company structures, products, services, agreements, and end users—can a particular administrator manage? (Top-down)
+- Which resources—-company structures, products, services, agreements, and end users—-can a particular administrator manage? (Top-down)
 - Which resource can an end user access?
 - Given a particular resource, who can modify its access settings? (Bottom-up)
 
@@ -49,16 +39,17 @@ Graph database access control and authorization solutions are particularly appli
 [[the_network]]
 == Access Control in Neo4j
 
-This model comprises two hierarchies. In the first hierarchy, administrators within each customer organization are assigned to groups; these groups are then accorded various permissions against that organization’s organizational structure:
+The following model illustrates the organizational structure of the fictional company TeleGraph, and is organized into two hierarchies. 
+In the first hierarchy, administrators within each customer organization are assigned to groups; these groups are then accorded various permissions against that organization’s structure:
 
 - `ALLOWED_INHERIT` connects an administrator group to an organizational unit, thereby allowing administrators within that group to manage the organizational unit. This permission is inherited by children of the parent organizational unit. We see an example of inherited permissions in the TeleGraph example data model in the relationships between Group 1 and Acme, and the child of Acme, Spinoff. Group 1 is connected to Acme using an `ALLOWED_INHERIT` relationship. Ben, as a member of Group 1, can manage employees both of Acme and Spinoff thanks to this `ALLOWED_INHERIT` relationship.
-- `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organi‐ zational unit, but not any of its children. Sarah, as a member of Group 2, can administer Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
+- `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organizational unit, but not any of its children. Sarah, as a member of Group 2, can administer Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
 - `DENIED` forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. In the TeleGraph diagram, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop. As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary; the reason being, Group 5, of which Liz is a member, is `DENIED` access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an `ALLOWED_DO_NOT_INHERIT` permission granted to Group 6, the last group to which Liz belongs.
 -- `DENIED` takes precedence over `ALLOWED_INHERIT`, but is subordinate to `ALLOWED_DO_NOT_INHERIT`. Therefore, if an administrator is connected to a company by way of `ALLOWED_DO_NOT_INHERIT` and `DENIED`, `ALLOWED_DO_NOT_INHERIT` prevails.
 
 === Fine-Grained Relationships, or Relationships with Properties?
 
-Notice that the TeleGraph access control data model uses fine-grained relationships (`ALLOWED_INHERIT`, `ALLOWED_DO_NOT_INHERIT`, and `DENIED`) rather than a single relationship type qualified by properties—something like `PERMISSION` with allowed and inherited boolean properties. TeleGraph performance-tested both approaches and determined that the fine-grained, property-free approach was nearly twice as fast as the one using properties. For more details on designing relationships, see Chapter 4 of Graph Databases [ADD LINK TO BOOK].
+Notice that the TeleGraph access control data model uses fine-grained relationships (`ALLOWED_INHERIT`, `ALLOWED_DO_NOT_INHERIT`, and `DENIED`) rather than a single relationship type qualified by properties, something like `PERMISSION` with allowed and inherited boolean properties. TeleGraph performance-tested both approaches and determined that the fine-grained, property-free approach was nearly twice as fast as the one using properties. For more details on designing relationships, see Chapter 4 of 'http://graphdatabases.com/?_ga=1.6664178.1166768751.1400630774[Graph Databases]'.
 
 //hide
 //setup
@@ -174,11 +165,11 @@ LIMIT 50
 //graph_result
 
 
-[[network_subtopic1]]
-=== Finding all accessible resources for an administrator
+[[problem1]]
+== Finding All Accessible Resources for an Administrator
 
 The TeleGraph application uses many different Cypher queries; we’ll look at just a few of them here.
-First up is the ability to find all the resources an administrator can access. Whenever an onsite administrator logs in to the system, he is presented with a browser-based list of all the employees and employee accounts he can administer. This list is generated based on the results returned from the following query:
+First up is the ability to find all the resources an administrator can access. Whenever an on-site administrator logs in to the system, he is presented with a browser-based list of all the employees and employee accounts he can administer. This list is generated based on the results returned from the following query:
 
 [source,cypher]
 ----
@@ -203,7 +194,7 @@ _note about Cypher_
 Cypher supports both `UNION` and `UNION ALL` operators. `UNION` eliminates duplicate results from the final result set, whereas `UNION ALL` includes any duplicates.
 
 [[problem_2]]
-== Determining whether an administrator has access to a resource
+== Determining Whether an Administrator has Access to a Resource
 
 The query we’ve just looked at returned a list of employees and accounts an administrator can manage. In a web application, each of these resources (employee, account) is accessible through its own URI. Given a friendly URI (e.g., http://TeleGraph/accounts/ 5436), what’s to stop someone from hacking a URI and gaining illegal access to an account?
 
@@ -226,9 +217,9 @@ In the TeleGraph data model, companies are indexed both by their name, and by th
 
 
 [[problem_3]]
-== Finding administrators for an account
+== Finding Administrators for an Account
 
-The previous two queries represent “top-down” views of the graph. The last TeleGraph query we’ll discuss here provides a “bottom-up” view of the data. Given a resource—an employee or account—who can manage it? Here’s the query:
+The previous two queries represent “top-down” views of the graph. The last TeleGraph query we’ll discuss here provides a “bottom-up” view of the data. Given a resource—-an employee or account—-who can manage it? Here’s the query:
 
 [source,cypher]
 ----
@@ -275,12 +266,7 @@ The existing COS Security system is around 10 years old. The system cannot scale
 
 The case for replacing COS Security is based around the needs of two of Telenor's most significant customers. The first anticipates growing to be three times as big as it is today; the second requires a faster solution. In building a new COS middleware platform, Telenor expects to meet these immediate customers needs and provide for another ten years' growth.
 
-Telenor have chosen Neo4j to represent the structure and content hierarchies, the relationships that associate master customers, their individual customers, agreements and subscriptions, and the permissions that determine an end-user's access to a customer's structure and content. Traversing the graph helps answer the following questions:
-
-•	Which subscriptions can a user access?
-•	Who is entitled to modify an agreement or subscription?
-•	Which agreements is a customer party to?
-
+Telenor have chosen Neo4j to represent the structure and content hierarchies, the relationships that associate master customers, their individual customers, agreements and subscriptions, and the permissions that determine an end-user's access to a customer's structure and content. 
 
 [[appendix]]
 == Cypher Appendix
@@ -302,8 +288,4 @@ _Explanation of non-trivial Cypher queries used._
 [[references]]
 == References
 
-_some sample references:_
-
-- Frederick, Michael T., Pallab Datta, and Arun K. Somani. "Sub-Graph Routing: A generalized fault-tolerant strategy for link failures in WDM Optical Networks." Computer Networks 50.2 (2006): 181-199.
-- 'http://en.wikipedia.org/wiki/Samuel_Johnson[Networks, Crowds, and Markets]'
-- 'http://jexp.de/blog/2014/03/sampling-a-neo4j-database/[Sampling a Neo4j Database]'
+- 'http://graphdatabases.com/?_ga=1.6664178.1166768751.1400630774[Graph Databases]'
