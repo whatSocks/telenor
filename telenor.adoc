@@ -174,7 +174,7 @@ CREATE (`Arnold`)-[:HAS_ACCOUNT]-(`account1`),(`Arnold`)-[:HAS_ACCOUNT]-(`accoun
 	(`Gordon`)-[:HAS_ACCOUNT]-(`account4`),
 	(`Lucy`)-[:HAS_ACCOUNT]-(`account5`),
 	(`Kate`)-[:HAS_ACCOUNT]-(`account7`),
-	(`Alister`-[:HAS_ACCOUNT]-(`account8`),
+	(`Alister`)-[:HAS_ACCOUNT]-(`account8`),
 	(`Eve`)-[:HAS_ACCOUNT]-(`account9`),
 	(`Gary`)-[:HAS_ACCOUNT]-(`account11`),
 	(`Bill`)-[:HAS_ACCOUNT]-(`account10`),
