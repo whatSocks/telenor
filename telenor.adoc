@@ -13,9 +13,8 @@
 * *<<problem_2, Determining Whether an Administrator has Access to a Resource>>*
 * *<<problem_3, Finding Administrators for an Account>>*
 * *<<conclusion, Conclusion>>*
-** <<conclusion_subtopic1, Conclusion Subtopic 1>>
 ** <<why_neo, Why Neo4j?>>
-* *<<use_case, Use Case: Use Case Name>>*
+* *<<use_case, Use Case: Telenor>>*
 * *<<appendix, Cypher Appendix>>*
 ** <<cypher_subtopic_1, Cypher Subtopic 1>>
 * *<<references, References>>*
@@ -165,7 +164,7 @@ LIMIT 50
 //graph_result
 
 
-[[problem1]]
+[[problem_1]]
 == Finding All Accessible Resources for an Administrator
 
 The TeleGraph application uses many different Cypher queries; we’ll look at just a few of them here.
