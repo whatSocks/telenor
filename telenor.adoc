@@ -117,18 +117,18 @@ CREATE (`Arnold`:employee {name:'Arnold'}),
 	(`Mary`:employee {name:'Mary'})
 
 //accounts
-CREATE (`account1`:account {name:'1'}),
-	(`account2`:account {name:'2'}),
-	(`account3`:account {name:'3'}),
-	(`account4`:account {name:'4'}),
-	(`account5`:account {name:'5'}),
-	(`account6`:account {name:'6'}),
-	(`account7`:account {name:'7'}),
-	(`account8`:account {name:'8'}),
-	(`account9`:account {name:'9'}),
-	(`account10`:account {name:'10'}),
-	(`account11`:account {name:'11'}),
-	(`account12`:account {name:'12'})
+CREATE (`account1`:account {name:'Acct 1'}),
+	(`account2`:account {name:'Acct 2'}),
+	(`account3`:account {name:'Acct 3'}),
+	(`account4`:account {name:'Acct 4'}),
+	(`account5`:account {name:'Acct 5'}),
+	(`account6`:account {name:'Acct 6'}),
+	(`account7`:account {name:'Acct 7'}),
+	(`account8`:account {name:'Acct 8'}),
+	(`account9`:account {name:'Acct 9'}),
+	(`account10`:account {name:'Acct 10'}),
+	(`account11`:account {name:'Acct 11'}),
+	(`account12`:account {name:'Acct 12'})
 
 //create relationships
 
