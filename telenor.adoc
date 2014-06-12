@@ -138,7 +138,7 @@ CREATE (`Ben`)-[:MEMBER_OF]->(`Group1`), (`Ben`)-[:MEMBER_OF]->(`Group3`),
 	(`Liz`)-[:MEMBER_OF]->(`Group4`), (`Liz`)-[:MEMBER_OF]->(`Group5`), (`Liz`)-[:MEMBER_OF]->(`Group6`), 
 	(`Phil`)-[:MEMBER_OF]->(`Group7`) 
 ----
-\\graph_result
+//graph_result
 
 
 [[network_subtopic1]]
