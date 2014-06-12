@@ -129,6 +129,14 @@ CREATE (`account1`:account {name:'1'}),
 	(`account10`:account {name:'10'}),
 	(`account11`:account {name:'11'}),
 	(`account12`:account {name:'12'})
+
+//create relationships
+
+//administrator-group relationships
+CREATE (`Ben`)-[:MEMBER_OF]->(`Group1`), (`Ben`)-[:MEMBER_OF]->(`Group3`), 
+	(`Sarah`)-[:MEMBER_OF]->(`Group2`), (`Sarah`)-[:MEMBER_OF]->(`Group3`), 
+	(`Liz`)-[:MEMBER_OF]->(`Group4`), (`Liz`)-[:MEMBER_OF]->(`Group5`), (`Liz`)-[:MEMBER_OF]->(`Group6`), 
+	(`Phil`)-[:MEMBER_OF]->(`Group7`) 
 ----
 \\graph_result
 
