@@ -180,6 +180,7 @@ LIMIT 50
 The TeleGraph application uses many different Cypher queries; we’ll look at just a few of them here.
 First up is the ability to find all the resources an administrator can access. Whenever an onsite administrator logs in to the system, he is presented with a browser-based list of all the employees and employee accounts he can administer. This list is generated based on the results returned from the following query:
 
+[source,cypher]
 ----
 MATCH paths=(admin:administrator)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) 
@@ -190,7 +191,7 @@ MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->()<-[:WORKS_FOR]
 RETURN admin.name AS Admin, employee.name AS Employee, collect(account.name) AS Accounts
 ORDER BY Admin ASC
 ----
-
+//table
 
 _talk about result_
 
