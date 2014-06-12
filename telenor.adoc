@@ -192,13 +192,13 @@ LIMIT 50
 The TeleGraph application uses many different Cypher queries; we’ll look at just a few of them here.
 First up is the ability to find all the resources an administrator can access. Whenever an onsite administrator logs in to the system, he is presented with a browser-based list of all the employees and employee accounts he can administer. This list is generated based on the results returned from the following query:
 
-[source,cypher]
 ----
 START admin=node:administrator(name={administratorName}) MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN employee.name AS employee, account.name AS account
 UNION
 START admin=node:administrator(name={administratorName})
-MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->()
+MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->()<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account) 
+RETURN employee.name AS employee, account.name AS account
 ----
 
 
@@ -223,7 +223,7 @@ Cypher supports both UNION and UNION ALL operators. UNION eliminates duplicate r
 The query we’ve just looked at returned a list of employees and accounts an administrator can manage. In a web application, each of these resources (employee, account) is accessible through its own URI. Given a friendly URI (e.g., http://TeleGraph/accounts/ 5436), what’s to stop someone from hacking a URI and gaining illegal access to an account?
 
 What’s needed is a query that will determine whether an administrator has access to a specific resource. This is that query:
-[source,cypher]
+
 ----
 START admin=node:administrator(name={adminName}), company=node:company(resourceName={resourceName}) MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN count(p) AS accessCount
@@ -231,6 +231,7 @@ UNION
 START admin=node:administrator(name={adminName}),
 company=node:company(resourceName={resourceName})
 MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(company) RETURN count(p) AS accessCount
+RETURN count(p) AS accessCount
 ----
 
 This query works by determining whether an administrator has access to the company to which an employee or an account belongs. How do we identify the company to which an employee or account belongs? Through clever use of indexes.
@@ -247,7 +248,8 @@ START resource=node:resource(name={resourceName})
 MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)-[:CHILD_OF*0..3]->()<-[:ALLOWED_INHERIT]-()<-[:MEMBER_OF]-(admin) WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN admin.name AS admin
 UNION
 START resource=node:resource(name={resourceName})
-MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INHERIT]-()<-[:MEMBER_OF]-(admin) RETURN admin.name AS admin
+MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INHERIT]-()<-[:MEMBER_OF]-(admin)
+RETURN admin.name AS admin
 ----
 
 
