@@ -8,7 +8,7 @@
 == Table of Contents
 
 * *<<introduction, Authorization and Access Control>>*
-* *<<the_network, The Network>>*
+* *<<the_network, Access Control and Neo4j>>*
 * *<<problem_1, Finding All Accessible Resources for an Administrator>>*
 * *<<problem_2, Determining Whether an Administrator has Access to a Resource>>*
 * *<<problem_3, Finding Administrators for an Account>>*
@@ -36,7 +36,7 @@ Graph database access control and authorization solutions are particularly appli
 
 
 [[the_network]]
-== Access Control in Neo4j
+== Access Control and Neo4j
 
 The following model illustrates the organizational structure of the fictional company TeleGraph, and is organized into two hierarchies. 
 In the first hierarchy, administrators within each customer organization are assigned to groups; these groups are then accorded various permissions against that organization’s structure:
