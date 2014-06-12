@@ -31,11 +31,11 @@ _Introduction content. Briefly introduce the graphgist and problems it solves._
 
 
 [[introduction2]]
-== Authorization and Access Control
+== Authorization and Access Control in TeleGraph
 
-Authorization and access control solutions store information about parties (e.g., ad‐ ministrators, organizational units, end-users) and resources (e.g., files, shares, network devices, products, services, agreements), together with the rules governing access to those resources; they then apply these rules to determine who can access or manipulate a resource. Access control has traditionally been implemented either using directory services or by building a custom solution inside an application’s backend. Hierarchical directory structures, however, cannot cope with the nonhierarchical organizational and resource dependency structures that characterize multiparty distributed supply chains. Hand-rolled solutions, particularly those developed on a relational database, suffer join pain as the dataset size grows, becoming slow and unresponsive, and ultimately deliv‐ ering a poor end-user experience.
+Authorization and access control solutions store information about parties (e.g., administrators, organizational units, and end-users) and resources (e.g., files, shares, network devices, products, services, and agreements), together with the rules governing access to those resources; they then apply these rules to determine who can access or manipulate a resource. Access control has traditionally been implemented either using directory services or by building a custom solution inside an application’s backend. Hierarchical directory structures, however, cannot cope with the nonhierarchical organizational and resource dependency structures that characterize multiparty distributed supply chains. Hand-rolled solutions, particularly those developed on a relational database, suffer join pain as the dataset size grows, becoming slow and unresponsive, and ultimately deliv‐ ering a poor end-user experience.
 
-A graph database can store complex, densely connected access control structures span‐ ning billions of parties and resources. Its structured yet schema-free data model sup‐ ports both hierarchical and nonhierarchical structures, while its extensible property model allows for capturing rich metadata regarding every element in the system. With a query engine that can traverse millions of relationships per second, access lookups over large, complex structures execute in milliseconds.
+A graph database can store complex, densely connected access control structures spanning billions of parties and resources. Its structured yet schema-free data model sup‐ ports both hierarchical and nonhierarchical structures, while its extensible property model allows for capturing rich metadata regarding every element in the system. With a query engine that can traverse millions of relationships per second, access lookups over large, complex structures execute in milliseconds.
 
 As with network management and analysis, a graph database access control solution allows for both top-down and bottom-up queries:
 
@@ -47,30 +47,18 @@ Graph database access control and authorization solutions are particularly appli
 
 
 [[the_network]]
-== The Network used in GraphGist
-
-=== _Briefly describe the network._
-
-_The network in this example is a social knowledge graph._  
-
-=== _Describe your nodes and relationships._
+== Access Control in Neo4j
 
 This model comprises two hierarchies. In the first hierarchy, administrators within each customer organization are assigned to groups; these groups are then accorded various permissions against that organization’s organizational structure:
 
-- ALLOWED_INHERIT connects an administrator group to an organizational unit, thereby allowing administrators within that group to manage the organizational unit. This permission is inherited by children of the parent organizational unit. We see an example of inherited permissions in the TeleGraph example data model in the relationships between Group 1 and Acme, and the child of Acme, Spinoff. Group 1 is connected to Acme using an ALLOWED_INHERIT relationship. Ben, as a member of Group 1, can manage employees both of Acme and Spinoff thanks to this AL LOWED_INHERIT relationship.
-- ALLOWED_DO_NOT_INHERIT connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organi‐ zational unit, but not any of its children. Sarah, as a member of Group 2, can ad‐ minister Acme, but not its child Spinoff, because Group 2 is connected to Acme by an ALLOWED_DO_NOT_INHERIT relationship, not an ALLOWED_INHERIT relationship.
-- DENIED forbids administrators from accessing an organizational unit. This permis‐ sion is inherited by children of the parent organizational unit. In the TeleGraph diagram, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop. As a result of her membership of Group 4 and its ALLOWED_INHERIT permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary; the reason being, Group 5, of which Liz is a member, is DE NIED access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an ALLOWED_DO_NOT_INHERIT per‐ mission granted to Group 6, the last group to which Liz belongs.
--- DENIED takes precedence over ALLOWED_INHERIT, but is subordinate to AL LOWED_DO_NOT_INHERIT. Therefore, if an administrator is connected to a company by way of ALLOWED_DO_NOT_INHERIT and DENIED, ALLOWED_DO_NOT_INHERIT prevails.
+- `ALLOWED_INHERIT` connects an administrator group to an organizational unit, thereby allowing administrators within that group to manage the organizational unit. This permission is inherited by children of the parent organizational unit. We see an example of inherited permissions in the TeleGraph example data model in the relationships between Group 1 and Acme, and the child of Acme, Spinoff. Group 1 is connected to Acme using an `ALLOWED_INHERIT` relationship. Ben, as a member of Group 1, can manage employees both of Acme and Spinoff thanks to this `ALLOWED_INHERIT` relationship.
+- `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organi‐ zational unit, but not any of its children. Sarah, as a member of Group 2, can ad‐ minister Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
+- DENIED forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. In the TeleGraph diagram, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop. As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary; the reason being, Group 5, of which Liz is a member, is DE NIED access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an ALLOWED_DO_NOT_INHERIT permission granted to Group 6, the last group to which Liz belongs.
+-- `DENIED` takes precedence over `ALLOWED_INHERIT`, but is subordinate to `ALLOWED_DO_NOT_INHERIT`. Therefore, if an administrator is connected to a company by way of `ALLOWED_DO_NOT_INHERIT` and `DENIED`, `ALLOWED_DO_NOT_INHERIT` prevails.
 
 === Fine-Grained Relationships, or Relationships with Properties?
 
-Notice that the TeleGraph access control data model uses fine-grained relationships (ALLOWED_INHERIT, ALLOWED_DO_NOT_INHERIT, and DENIED) rather than a single rela‐ tionship type qualified by properties—something like PERMISSION with allowed and inherited boolean properties. TeleGraph performance-tested both approaches and determined that the fine-grained, property-free approach was nearly twice as fast as the one using properties. For more details on designing relationships, see Chapter 4 of Graph Databases [ADD LINK TO BOOK].
-==== _Sample Scenario_
-
-_There are two types of nodes, users and topics. Users are connected to their buddies by the `IS_BUDDY` relationship, and are connected to topics by the `KNOWS_ABOUT` relationship. In this example, if Jacob is buddies with David, we're assuming that David also considers Jacob his buddy. Depending on what we want to model, we might have accepted a scenario where Jacob is buddies with David, but David is not buddies with Jacob._ 
-
-_Each `KNOWS_ABOUT` relationship has the properties `correct` and `total`, reflecting how many times the user has been asked about a topic, and of these times, how many times the user has responded correctly.  Every edge is initialized with a default of `{correct:1, total:2 }`._
-
+Notice that the TeleGraph access control data model uses fine-grained relationships (`ALLOWED_INHERIT`, `ALLOWED_DO_NOT_INHERIT`, and `DENIED`) rather than a single relationship type qualified by properties—something like `PERMISSION` with allowed and inherited boolean properties. TeleGraph performance-tested both approaches and determined that the fine-grained, property-free approach was nearly twice as fast as the one using properties. For more details on designing relationships, see Chapter 4 of Graph Databases [ADD LINK TO BOOK].
 
 //hide
 //setup
@@ -193,18 +181,20 @@ The TeleGraph application uses many different Cypher queries; we’ll look at ju
 First up is the ability to find all the resources an administrator can access. Whenever an onsite administrator logs in to the system, he is presented with a browser-based list of all the employees and employee accounts he can administer. This list is generated based on the results returned from the following query:
 
 ----
-START admin=node:administrator(name={administratorName}) MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
-WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN employee.name AS employee, account.name AS account
+MATCH paths=(admin:administrator)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) 
+RETURN admin.name AS Admin, employee.name AS Employee, collect(account.name) AS Accounts
+ORDER BY Admin ASC
 UNION
-START admin=node:administrator(name={administratorName})
 MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->()<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account) 
-RETURN employee.name AS employee, account.name AS account
+RETURN admin.name AS Admin, employee.name AS Employee, collect(account.name) AS Accounts
+ORDER BY Admin ASC
 ----
 
 
 _talk about result_
 
-shows how this query matches all accessible resources for Sarah in the sample TeleGraph graph. Note that, because of the DENIED relationship from Group 2 to Skunk workz, Sarah cannot administer Kate and Account 7.
+shows how this query matches all accessible resources for Sarah in the sample TeleGraph graph. Note that, because of the DENIED relationship from Group 2 to Skunkworkz, Sarah cannot administer Kate and Account 7.
 
 
 _note about Cypher_
@@ -224,15 +214,17 @@ The query we’ve just looked at returned a list of employees and accounts an ad
 
 What’s needed is a query that will determine whether an administrator has access to a specific resource. This is that query:
 
+[source,cypher]
 ----
-START admin=node:administrator(name={adminName}), company=node:company(resourceName={resourceName}) MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)
-WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN count(p) AS accessCount
+MATCH p=(admin:administrator)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company:company)
+WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company))
+RETURN admin.name AS Admin, collect(company.name) AS Resource
 UNION
-START admin=node:administrator(name={adminName}),
-company=node:company(resourceName={resourceName})
-MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(company) RETURN count(p) AS accessCount
-RETURN count(p) AS accessCount
+MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(company)
+RETURN admin.name AS Admin, collect(company.name) AS Resource
 ----
+//table
+
 
 This query works by determining whether an administrator has access to the company to which an employee or an account belongs. How do we identify the company to which an employee or account belongs? Through clever use of indexes.
 In the TeleGraph data model, companies are indexed both by their name, and by the names of their employees and employee accounts. Given a company name, employee name, or account name, we can, therefore, look up the relevant company node in the company index.
@@ -242,21 +234,17 @@ In the TeleGraph data model, companies are indexed both by their name, and by th
 == Finding administrators for an account
 
 The previous two queries represent “top-down” views of the graph. The last TeleGraph query we’ll discuss here provides a “bottom-up” view of the data. Given a resource—an employee or account—who can manage it? Here’s the query:
+
 [source,cypher]
 ----
-START resource=node:resource(name={resourceName})
-MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)-[:CHILD_OF*0..3]->()<-[:ALLOWED_INHERIT]-()<-[:MEMBER_OF]-(admin) WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN admin.name AS admin
+MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)-[:CHILD_OF*0..3]->()<-[:ALLOWED_INHERIT]-()<-[:MEMBER_OF]-(admin)
+WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company))
+RETURN resource.name AS Resource, collect(admin.name) AS Admins
 UNION
-START resource=node:resource(name={resourceName})
 MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INHERIT]-()<-[:MEMBER_OF]-(admin)
-RETURN admin.name AS admin
+RETURN resource.name AS Resource, collect(admin.name) AS Admins
 ----
-
-
-
-
-
-
+//table
 
 
 [[conclusion]]
@@ -307,7 +295,6 @@ Telenor have chosen Neo4j to represent the structure and content hierarchies, th
 
 Topics to cover
 
-- MATCH vs START
 
 [[cypher_subtopic_1]]
 === Cypher Subtopic 1
