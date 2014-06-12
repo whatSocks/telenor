@@ -137,6 +137,27 @@ CREATE (`Ben`)-[:MEMBER_OF]->(`Group1`), (`Ben`)-[:MEMBER_OF]->(`Group3`),
 	(`Sarah`)-[:MEMBER_OF]->(`Group2`), (`Sarah`)-[:MEMBER_OF]->(`Group3`), 
 	(`Liz`)-[:MEMBER_OF]->(`Group4`), (`Liz`)-[:MEMBER_OF]->(`Group5`), (`Liz`)-[:MEMBER_OF]->(`Group6`), 
 	(`Phil`)-[:MEMBER_OF]->(`Group7`) 
+
+//group-company relationships
+CREATE (`Group1`)-[:ALLOWED_INHERIT]->(`Acme`),
+	(`Group2`)-[:ALLOWED_DO_NOT_INHERIT]->(`Acme`),(`Group2`)-[:DENIED]->(`Skunkworkz`),
+	(`Group3`)-[:ALLOWED_INHERIT]->(`Startup`),
+	(`Group4`)-[:ALLOWED_INHERIT]->(`BigCo`),
+	(`Group5`)-[:DENIED]->(`Aquired`),
+	(`Group6`)-[:ALLOWED_DO_NOT_INHERIT]->(`OneManShop`),
+	(`Group7`)-[:ALLOWED_INHERIT]->(`Subsidry`)
+
+//company-company relationships
+CREATE (`Spinoff`)-[:CHILD_OF]->(`Acme`),
+	(`Skunkworkz`)-[:CHILD_OF]->(`Startup`),
+	(`Aquired`)-[:CHILD_OF]->(`BigCo`),
+	(`Subsidry`)-[:CHILD_OF]->(`Aquired`),
+	(`DevShop`)-[:CHILD_OF]->(`Subsidry`)
+	
+
+
+RETURN *
+LIMIT 50
 ----
 //graph_result
 
