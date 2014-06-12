@@ -78,57 +78,57 @@ _Each `KNOWS_ABOUT` relationship has the properties `correct` and `total`, refle
 ----
 //create the nodes
 //administrators
-CREATE (`Ben`:administrator {name:Ben}),
-	(`Sarah`:administrator {name:Sarah}),
-	(`Liz`:administrator {name:Liz}),
-	(`Phil`:administrator {name:Phil})
+CREATE (`Ben`:administrator {name:'Ben'}),
+	(`Sarah`:administrator {name:'Sarah'}),
+	(`Liz`:administrator {name:'Liz'}),
+	(`Phil`:administrator {name:'Phil'})
 
 //groups
-CREATE (`Group1`:group {name:Group1}),
-	(`Group2`:group {name:Group2}),
-	(`Group3`:group {name:Group3}),
-	(`Group4`:group {name:Group4}),
-	(`Group5`:group {name:Group5}),
-	(`Group6`:group {name:Group6}),
-	(`Group7`:group {name:Group7})
+CREATE (`Group1`:group {name:'Group1'}),
+	(`Group2`:group {name:'Group2'}),
+	(`Group3`:group {name:'Group3'}),
+	(`Group4`:group {name:'Group4'}),
+	(`Group5`:group {name:'Group5'}),
+	(`Group6`:group {name:'Group6'}),
+	(`Group7`:group {name:'Group7'})
 
 //companies
-CREATE (`Acme`:company {name:Acme}),
-	(`Spinoff`:company {name:Spinoff}),
-	(`Startup`:company {name:Startup}),
-	(`Skunkworkz`:company {name:Skunkworkz}),
-	(`BigCo`:company {name:BigCo}),
-	(`Aquired`:company {name:Aquired}),
-	(`Subsidry`:company {name:Subsidry}),
-	(`DevShop`:company {name:DevShop}),
-	(`OneManShop`:company {name:OneManShop})
+CREATE (`Acme`:company {name:'Acme'}),
+	(`Spinoff`:company {name:'Spinoff'}),
+	(`Startup`:company {name:'Startup'}),
+	(`Skunkworkz`:company {name:'Skunkworkz'}),
+	(`BigCo`:company {name:'BigCo'}),
+	(`Aquired`:company {name:'Aquired'}),
+	(`Subsidry`:company {name:'Subsidry'}),
+	(`DevShop`:company {name:'DevShop'}),
+	(`OneManShop`:company {name:'OneManShop'})
 
 //employees
-CREATE (`Arnold`:employee {name:Arnold}),
-	(`Charlie`:employee {name:Charlie}),
-	(`Emily`:employee {name:Emily}),
-	(`Gordon`:employee {name:Gordon}),
-	(`Lucy`:employee {name:Lucy}),
-	(`Kate`:employee {name:Kate}),
-	(`Alister`:employee {name:Alister}),
-	(`Eve`:employee {name:Eve}),
-	(`Gary`:employee {name:Gary}),
-	(`Bill`:employee {name:Bill}),
-	(`Mary`:employee {name:Mary})
+CREATE (`Arnold`:employee {name:'Arnold'}),
+	(`Charlie`:employee {name:'Charlie'}),
+	(`Emily`:employee {name:'Emily'}),
+	(`Gordon`:employee {name:'Gordon'}),
+	(`Lucy`:employee {name:'Lucy'}),
+	(`Kate`:employee {name:'Kate'}),
+	(`Alister`:employee {name:'Alister'}),
+	(`Eve`:employee {name:'Eve'}),
+	(`Gary`:employee {name:'Gary'}),
+	(`Bill`:employee {name:'Bill'}),
+	(`Mary`:employee {name:'Mary'})
 
 //accounts
-CREATE (`account1`:account {name:1}),
-	(`account2`:account {name:2}),
-	(`account3`:account {name:3}),
-	(`account4`:account {name:4}),
-	(`account5`:account {name:5}),
-	(`account6`:account {name:6}),
-	(`account7`:account {name:7}),
-	(`account8`:account {name:8}),
-	(`account9`:account {name:9}),
-	(`account10`:account {name:10}),
-	(`account11`:account {name:11}),
-	(`account12`:account {name:12})
+CREATE (`account1`:account {name:'1'}),
+	(`account2`:account {name:'2'}),
+	(`account3`:account {name:'3'}),
+	(`account4`:account {name:'4'}),
+	(`account5`:account {name:'5'}),
+	(`account6`:account {name:'6'}),
+	(`account7`:account {name:'7'}),
+	(`account8`:account {name:'8'}),
+	(`account9`:account {name:'9'}),
+	(`account10`:account {name:'10'}),
+	(`account11`:account {name:'11'}),
+	(`account12`:account {name:'12'})
 ----
 \\graph_result
 
@@ -140,10 +140,10 @@ The TeleGraph application uses many different Cypher queries; we’ll look at ju
 First up is the ability to find all the resources an administrator can access. Whenever an onsite administrator logs in to the system, he is presented with a browser-based list of all the employees and employee accounts he can administer. This list is generated based on the results returned from the following query:
 
 ----
-START admin=node:administrator(name={administratorName}) MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+START admin=node:administrator(name={administratorName'}) MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN employee.name AS employee, account.name AS account
 UNION
-START admin=node:administrator(name={administratorName})
+START admin=node:administrator(name={administratorName'})
 MATCH paths=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->()
 ----
 
@@ -171,11 +171,11 @@ The query we’ve just looked at returned a list of employees and accounts an ad
 What’s needed is a query that will determine whether an administrator has access to a specific resource. This is that query:
 
 ----
-START admin=node:administrator(name={adminName}), company=node:company(resourceName={resourceName}) MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)
+START admin=node:administrator(name={adminName'}), company=node:company(resourceName={resourceName'}) MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->()<-[:CHILD_OF*0..3]-(company)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN count(p) AS accessCount
 UNION
-START admin=node:administrator(name={adminName}),
-company=node:company(resourceName={resourceName})
+START admin=node:administrator(name={adminName'}),
+company=node:company(resourceName={resourceName'})
 MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(company) RETURN count(p) AS accessCount
 ----
 
@@ -189,10 +189,10 @@ In the TeleGraph data model, companies are indexed both by their name, and by th
 The previous two queries represent “top-down” views of the graph. The last TeleGraph query we’ll discuss here provides a “bottom-up” view of the data. Given a resource—an employee or account—who can manage it? Here’s the query:
 
 ----
-START resource=node:resource(name={resourceName})
+START resource=node:resource(name={resourceName'})
 MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)-[:CHILD_OF*0..3]->()<-[:ALLOWED_INHERIT]-()<-[:MEMBER_OF]-(admin) WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company)) RETURN admin.name AS admin
 UNION
-START resource=node:resource(name={resourceName})
+START resource=node:resource(name={resourceName'})
 MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INHERIT]-()<-[:MEMBER_OF]-(admin) RETURN admin.name AS admin
 ----
 
