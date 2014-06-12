@@ -52,8 +52,8 @@ Graph database access control and authorization solutions are particularly appli
 This model comprises two hierarchies. In the first hierarchy, administrators within each customer organization are assigned to groups; these groups are then accorded various permissions against that organization’s organizational structure:
 
 - `ALLOWED_INHERIT` connects an administrator group to an organizational unit, thereby allowing administrators within that group to manage the organizational unit. This permission is inherited by children of the parent organizational unit. We see an example of inherited permissions in the TeleGraph example data model in the relationships between Group 1 and Acme, and the child of Acme, Spinoff. Group 1 is connected to Acme using an `ALLOWED_INHERIT` relationship. Ben, as a member of Group 1, can manage employees both of Acme and Spinoff thanks to this `ALLOWED_INHERIT` relationship.
-- `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organi‐ zational unit, but not any of its children. Sarah, as a member of Group 2, can ad‐ minister Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
-- DENIED forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. In the TeleGraph diagram, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop. As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary; the reason being, Group 5, of which Liz is a member, is DE NIED access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an ALLOWED_DO_NOT_INHERIT permission granted to Group 6, the last group to which Liz belongs.
+- `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organi‐ zational unit, but not any of its children. Sarah, as a member of Group 2, can administer Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
+- `DENIED` forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. In the TeleGraph diagram, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop. As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary; the reason being, Group 5, of which Liz is a member, is `DENIED` access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an `ALLOWED_DO_NOT_INHERIT` permission granted to Group 6, the last group to which Liz belongs.
 -- `DENIED` takes precedence over `ALLOWED_INHERIT`, but is subordinate to `ALLOWED_DO_NOT_INHERIT`. Therefore, if an administrator is connected to a company by way of `ALLOWED_DO_NOT_INHERIT` and `DENIED`, `ALLOWED_DO_NOT_INHERIT` prevails.
 
 === Fine-Grained Relationships, or Relationships with Properties?
@@ -195,18 +195,12 @@ ORDER BY Admin ASC
 
 _talk about result_
 
-shows how this query matches all accessible resources for Sarah in the sample TeleGraph graph. Note that, because of the DENIED relationship from Group 2 to Skunkworkz, Sarah cannot administer Kate and Account 7.
+_shows how this query matches all accessible resources for Sarah in the sample TeleGraph graph. Note that, because of the `DENIED` relationship from Group 2 to Skunkworkz, Sarah cannot administer Kate and Account 7._
 
 
 _note about Cypher_
 
-Cypher supports both UNION and UNION ALL operators. UNION eliminates duplicate results from the final result set, whereas UNION ALL includes any duplicates.
-
-[[problem_1_subtopic1]]
-=== Problem 1 Subtopic 1
-
-==== _Describe and solve the problem with prose and Cypher!_
-
+Cypher supports both `UNION` and `UNION ALL` operators. `UNION` eliminates duplicate results from the final result set, whereas `UNION ALL` includes any duplicates.
 
 [[problem_2]]
 == Determining whether an administrator has access to a resource
@@ -251,9 +245,6 @@ RETURN resource.name AS Resource, collect(admin.name) AS Admins
 [[conclusion]]
 == Conclusion
 
-
-[[conclusion_subtopic1]]
-=== Conclusion Subtopic 1
 
 [[why_neo]]
 === Why Neo4j?
