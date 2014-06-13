@@ -27,9 +27,9 @@ A graph database can store complex, densely connected access control structures 
 
 As with network management and analysis, a graph database access control solution allows for both top-down and bottom-up queries. This GraphGist will explore how we can use Neo4j and Cypher to determine:
 
-- Which resources—-company structures, products, services, agreements, and end users—-can a particular administrator manage? (Top-down)
+- Which resources--company structures, products, services, agreements, and end users--can a particular administrator manage?
 - Which resource can an end user access?
-- Given a particular resource, who can modify its access settings? (Bottom-up)
+- Given a particular resource, who can modify its access settings?
 
 [[the_network]]
 == Access Control and Neo4j
@@ -172,7 +172,7 @@ Although not extremely complex, this GraphGist has a lot of interconnected parts
 
 Again, `ALLOWED_INHERIT` connects an administrator group to an organizational unit, thereby allowing administrators within that group to manage the organizational unit. This permission is inherited by children of the parent organizational unit.
 
-In the TeleGraph described above, Ben can manage employees of both Skunkworks and Spinoff thanks to the `ALLOWED_INHERIT` relationship between Group1 (Ben is a member) and Acme, Group1 and Startup, the parents of Spinoff and Skunkworkz, respectively.  
+At TeleGraph, administrator Ben can manage employees of both Skunkworks and Spinoff thanks to the `ALLOWED_INHERIT` relationship between Group1 (Ben is a member) and Acme and Group1 and Startup.  
 
 [source,cypher]
 ----
@@ -186,7 +186,7 @@ RETURN admin.name AS Admin, c1.name AS `Parent Company`, c2.name AS `Child Compa
 
 Again, `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organizational unit, but not any of its children. Sarah, as a member of Group 2, can administer Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
 
-This query explores what users Sarah is not allowed to manage due to the `ALLOWED_DO_NOT_INHERIT` relationship:
+This query explores what users administrator Sarah is *not* allowed to manage due to the `ALLOWED_DO_NOT_INHERIT` relationship:
 
 [source,cypher]
 ----
@@ -198,7 +198,7 @@ RETURN admin.name AS Admin, c1.name AS `Parent Company`, c2.name AS `Child Compa
 [[DENIED]]
 === DENIED
 
-Again, `DENIED` forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. At TeleGraph, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop.
+Again, `DENIED` forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. At TeleGraph, this is best illustrated by administrator Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop.
 
 Lets take a look at Liz _without_ the `DENIED` restriction:
 [source,cypher]
@@ -217,9 +217,11 @@ RETURN paths
 ----
 //graph_result
 
-As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary. Group 5, of which Liz is a member, is `DENIED` access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an `ALLOWED_DO_NOT_INHERIT` permission granted to Group 6, the last group to which Liz belongs.
+As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary. Group 5, of which Liz is a member, is `DENIED` access to Acquired Ltd and its children (which includes Subsidiary). 
 
-Let's see the query again taking into account `ALLOWED_DO_NOT_INHERIT`:
+Liz can, however, manage One-Map Shop, thanks to an `ALLOWED_DO_NOT_INHERIT` permission granted to Group 6, the last group to which Liz belongs.
+
+Let's see the query again, this time adding `ALLOWED_DO_NOT_INHERIT`:
 
 [source,cypher]
 ----
@@ -277,13 +279,10 @@ RETURN admin.name AS Admin, collect(company.name) AS Resource
 ----
 //table
 
-This query works by determining whether an administrator has access to the company to which an employee or an account belongs. How do we identify the company to which an employee or account belongs? Through clever use of indexes.
-In the TeleGraph data model, companies are indexed both by their name, and by the names of their employees and employee accounts. Given a company name, employee name, or account name, we can, therefore, look up the relevant company node in the company index.
-
 [[problem_3]]
 == Finding Administrators for an Account
 
-The previous two queries represent “top-down” views of the graph. The last TeleGraph query we’ll discuss here provides a “bottom-up” view of the data. Given a resource—-an employee OR account—-who can manage it? Here’s the query:
+The previous two queries represent “top-down” views of the graph. The last TeleGraph query we’ll discuss here provides a “bottom-up” view of the data. Given a resource--an employee OR account--who can manage it? Here’s the query:
 
 [source,cypher]
 ----
