@@ -264,7 +264,7 @@ This query matches all accessible resources each administrator, taking into acco
 [[problem_2]]
 == Determining Whether an Administrator has Access to a Resource
 
-The query we’ve just looked at returned a list of employees and accounts an administrator can manage. In a web application, each of these resources (employee, account) is accessible through its own URI. Given a friendly URI (e.g., http://TeleGraph/accounts/ 5436), what’s to stop someone from hacking a URI and gaining illegal access to an account?
+The query we’ve just looked at returned a list of employees and accounts an administrator can manage. In a web application, each of these resources (employee, account) is accessible through its own URI. Given a friendly URI (e.g., http://TeleGraph/accounts/ 5436), what’s to stop someone from an adminstrator accidentally changing an unauthorized account?
 
 What’s needed is a query that will determine whether an administrator has access to a specific resource:
 
@@ -278,6 +278,7 @@ MATCH p=(admin)-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(company)
 RETURN admin.name AS Admin, collect(company.name) AS Resource
 ----
 //table
+
 
 [[problem_3]]
 == Finding Administrators for an Account
@@ -294,6 +295,8 @@ MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INH
 RETURN resource.name AS Resource, collect(admin.name) AS Admins
 ----
 //table
+
+The query looks like the previous two top down queries, but in reverse. Notice the how Cypher uses the `OR` pipe to select either an employee or an account resource. 
 
 [[conclusion]]
 == Conclusion
@@ -315,10 +318,6 @@ Telenor Norway is the leading supplier of the country’s telecommunications and
 Telenor’s systems expose customer and product data to a range of different channels, among others a self-service web solution where business customers may manage their own portfolio. System availability and access/retrieval response times are critical to customer satisfaction.
 
 Telenor has chosen Neo4j to represent the structure and content hierarchies, the relationships that associate master customers, their individual customers, agreements and subscriptions, and the permissions that determine an end-user's access to a customer's structure and content. 
-
-[[appendix]]
-== Cypher Appendix
-
 
 [[references]]
 == References
