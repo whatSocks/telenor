@@ -305,20 +305,19 @@ Again, `DENIED` forbids administrators from accessing an organizational unit. Th
 Lets take a look at Liz _without_ the `DENIED` restriction:
 [source,cypher]
 ----
-MATCH paths=(admin:administrator { name:'Liz' })-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(c1:company)<-[c:CHILD_OF*0..3]-(c2:company)<-[w:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
-RETURN admin, c1, c2, employee, c, w
+MATCH paths=(admin:administrator { name:'Liz' })-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(:company)<-[:CHILD_OF*0..3]-(:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+RETURN paths
 ----
 //graph_result
 
 Lets take a look at Liz _with_ the `DENIED` restriction:
 [source,cypher]
 ----
-MATCH paths=(admin:administrator { name:'Liz'})-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(c1:company)<-[:CHILD_OF*0..3]-(c2:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+MATCH paths=(admin:administrator { name:'Liz' })-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(:company)<-[:CHILD_OF*0..3]-(:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(c2))
-RETURN admin, c1, c2, employee, c, w
+RETURN paths
 ----
 //graph_result
-
 
 
 
