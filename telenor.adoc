@@ -270,7 +270,64 @@ Telenor have chosen Neo4j to represent the structure and content hierarchies, th
 [[appendix]]
 == Cypher Appendix
 
-Topics to cover
+Although not extremely complex, this GraphGist has a lot of interconnected parts. Let's take a step towards simplicity and explore the different types of access control individually. 
+
+=== ALLOWED_INHERIT
+
+Again, `ALLOWED_INHERIT` connects an administrator group to an organizational unit, thereby allowing administrators within that group to manage the organizational unit. This permission is inherited by children of the parent organizational unit.
+
+In the TeleGraph described above, Ben can manage employees of both Skunkworks and Spinoff thanks to the `ALLOWED_INHERIT` relationship between Group1 (Ben is a member) and Acme, Group1 and Startup, the parents of Spinoff and Skunkworkz, respectively.  
+
+[source,cypher]
+----
+MATCH paths=(admin:administrator {name:'Ben'})-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(c1:company)<-[:CHILD_OF*0..3]-(c2:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+RETURN admin.name AS Admin, c1.name AS `Parent Company`, c2.name AS `Child Company`, employee.name AS Employee
+----
+//table
+
+=== ALLOWED_DO_NOT_INHERIT
+
+Again, `ALLOWED_DO_NOT_INHERIT` connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organizational unit, but not any of its children. Sarah, as a member of Group 2, can administer Acme, but not its child Spinoff, because Group 2 is connected to Acme by an `ALLOWED_DO_NOT_INHERIT` relationship, not an `ALLOWED_INHERIT` relationship.
+
+This query explores what users Sarah is not allowed to manage due to the `ALLOWED_DO_NOT_INHERIT` relationship:
+
+[source,cypher]
+----
+MATCH paths=(admin:administrator {name:'Sarah'})-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(c1:company)<-[:CHILD_OF*0..3]-(c2:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+RETURN admin.name AS Admin, c1.name AS `Parent Company`, c2.name AS `Child Company`, employee.name AS Employee
+----
+//table
+
+=== DENIED
+
+Again, `DENIED` forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. In the TeleGraph diagram, this is best illustrated by Liz and her permissions with respect to Big Co, Acquired Ltd, Subsidiary, and One-Map Shop.
+
+Lets take a look at Liz _without_ the `DENIED` restriction:
+[source,cypher]
+----
+MATCH paths=(admin:administrator { name:'Liz' })-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(c1:company)<-[c:CHILD_OF*0..3]-(c2:company)<-[w:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+RETURN admin, c1, c2, employee, c, w
+----
+//graph_result
+
+Lets take a look at Liz _with_ the `DENIED` restriction:
+[source,cypher]
+----
+MATCH paths=(admin:administrator { name:'Liz'})-[:MEMBER_OF]->()-[:ALLOWED_INHERIT]->(c1:company)<-[:CHILD_OF*0..3]-(c2:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(c2))
+RETURN admin, c1, c2, employee, c, w
+----
+//graph_result
+
+
+
+
+
+ As a result of her membership of Group 4 and its `ALLOWED_INHERIT` permission on Big Co, Liz can manage Big Co. But despite this being an inheritable relationship, Liz cannot manage Acquired Ltd or Subsidiary; the reason being, Group 5, of which Liz is a member, is `DENIED` access to Acquired Ltd and its children (which includes Subsidiary). Liz can, however, manage One-Map Shop, thanks to an `ALLOWED_DO_NOT_INHERIT` permission granted to Group 6, the last group to which Liz belongs.
+-- `DENIED` takes precedence over `ALLOWED_INHERIT`, but is subordinate to `ALLOWED_DO_NOT_INHERIT`. Therefore, if an administrator is connected to a company by way of `ALLOWED_DO_NOT_INHERIT` and `DENIED`, `ALLOWED_DO_NOT_INHERIT` prevails.
+
+
+
 
 
 [[cypher_subtopic_1]]
