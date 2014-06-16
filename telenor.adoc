@@ -294,11 +294,11 @@ The previous two queries represent “top-down” views of the graph. The last T
 
 [source,cypher]
 ----
-MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)-[:CHILD_OF*0..3]->()<-[:ALLOWED_INHERIT]-()<-[:MEMBER_OF]-(admin)
+MATCH p=(resource {name:'Acct 10'})-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)-[:CHILD_OF*0..3]->()<-[:ALLOWED_INHERIT]-()<-[:MEMBER_OF]-(admin)
 WHERE NOT ((admin)-[:MEMBER_OF]->()-[:DENIED]->()<-[:CHILD_OF*0..3]-(company))
 RETURN resource.name AS Resource, collect(admin.name) AS Admins
 UNION
-MATCH p=(resource)-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INHERIT]-()<-[:MEMBER_OF]-(admin)
+MATCH p=(resource {name:'Acct 10'})-[:WORKS_FOR|HAS_ACCOUNT*1..2]-(company)<-[:ALLOWED_DO_NOT_INHERIT]-()<-[:MEMBER_OF]-(admin)
 RETURN resource.name AS Resource, collect(admin.name) AS Admins
 ----
 //table
