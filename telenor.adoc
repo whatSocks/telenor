@@ -43,6 +43,8 @@ Each company is assigned one or more employee via the `WORKS_FOR` relationship, 
 - <<ALLOWED_DO_NOT_INHERIT,`ALLOWED_DO_NOT_INHERIT`>> connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organizational unit, but not any of its children. 
 - <<DENIED, `DENIED`>> forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. `DENIED` takes precedence over `ALLOWED_INHERIT`, but is subordinate to `ALLOWED_DO_NOT_INHERIT`.
 
+image::https://github.com/whatSocks/telenor/blob/master/wholeGraph.png['the whole graph']
+
 === Fine-Grained Relationships, or Relationships with Properties?
 
 Notice that the TeleGraph access control data model uses fine-grained relationships (`ALLOWED_INHERIT`, `ALLOWED_DO_NOT_INHERIT`, and `DENIED`) rather than a single relationship type qualified by properties, something like `PERMISSION` with allowed and inherited boolean properties. TeleGraph performance-tested both approaches and determined that the fine-grained, property-free approach was nearly twice as fast as the one using properties. For more details on designing relationships, see Chapter 4 of 'http://graphdatabases.com/?_ga=1.6664178.1166768751.1400630774[Graph Databases]'.
@@ -129,7 +131,8 @@ CREATE (`Spinoff`)-[:CHILD_OF]->(`Acme`),
 	(`Skunkworkz`)-[:CHILD_OF]->(`Startup`),
 	(`Aquired`)-[:CHILD_OF]->(`BigCo`),
 	(`Subsidry`)-[:CHILD_OF]->(`Aquired`),
-	(`DevShop`)-[:CHILD_OF]->(`Subsidry`)
+	(`DevShop`)-[:CHILD_OF]->(`Subsidry`),
+	(`OneManShop`)-[:CHILD_OF]->(`Subsidry`)
 
 //employee-company relationships
 CREATE (`Arnold`)-[:WORKS_FOR]->(`Acme`),
@@ -162,6 +165,7 @@ LIMIT 50
 ----
 //graph_result
 
+
 [[LOAC]]
 == Levels of Access Control and their Interaction
 
@@ -181,6 +185,7 @@ RETURN admin.name AS Admin, c1.name AS `Parent Company`, c2.name AS `Child Compa
 ----
 //table
 
+
 [[ALLOWED_DO_NOT_INHERIT]]
 === ALLOWED_DO_NOT_INHERIT
 
@@ -190,10 +195,12 @@ This query explores what users administrator Sarah is *not* allowed to manage du
 
 [source,cypher]
 ----
-MATCH paths=(admin:administrator {name:'Sarah'})-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(c1:company)<-[:CHILD_OF*0..3]-(c2:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
+MATCH paths=(admin:administrator {name:'Sarah'})-[:MEMBER_OF]->()-[:ALLOWED_DO_NOT_INHERIT]->(c1:company)<-[:CHILD_OF*1..3]-(c2:company)<-[:WORKS_FOR]-(employee)-[:HAS_ACCOUNT]->(account)
 RETURN admin.name AS Admin, c1.name AS `Parent Company`, c2.name AS `Child Company`, employee.name AS Employee
 ----
 //table
+
+image::https://github.com/whatSocks/telenor/blob/master/sarah.png['Note Sarah doesn't manage Emily']
 
 [[DENIED]]
 === DENIED
@@ -297,6 +304,8 @@ RETURN resource.name AS Resource, collect(admin.name) AS Admins
 //table
 
 The query looks like the previous two top down queries, but in reverse. Notice the how Cypher uses the `OR` pipe to select either an employee or an account resource. 
+
+image::https://github.com/whatSocks/telenor/blob/master/bill.png['Exploring Account 10']
 
 [[conclusion]]
 == Conclusion
