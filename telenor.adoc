@@ -43,7 +43,7 @@ Each company is assigned one or more employee via the `WORKS_FOR` relationship, 
 - <<ALLOWED_DO_NOT_INHERIT,`ALLOWED_DO_NOT_INHERIT`>> connects an administrator group to an organizational unit in a way that allows administrators within that group to manage the organizational unit, but not any of its children. 
 - <<DENIED, `DENIED`>> forbids administrators from accessing an organizational unit. This permission is inherited by children of the parent organizational unit. `DENIED` takes precedence over `ALLOWED_INHERIT`, but is subordinate to `ALLOWED_DO_NOT_INHERIT`.
 
-image::https://github.com/whatSocks/telenor/blob/master/wholeGraph.png['the whole graph']
+image:https://github.com/whatSocks/telenor/blob/master/wholeGraph.png['the whole graph']
 
 === Fine-Grained Relationships, or Relationships with Properties?
 
@@ -305,7 +305,7 @@ RETURN resource.name AS Resource, collect(admin.name) AS Admins
 
 The query looks like the previous two top down queries, but in reverse. Notice the how Cypher uses the `OR` pipe to select either an employee or an account resource. 
 
-image::https://github.com/whatSocks/telenor/blob/master/bill.png['Exploring Account 10']
+image:https://github.com/whatSocks/telenor/blob/master/bill.png['Exploring Account 10']
 
 [[conclusion]]
 == Conclusion
